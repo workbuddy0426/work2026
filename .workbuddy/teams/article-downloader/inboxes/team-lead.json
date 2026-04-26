@@ -1,0 +1,11 @@
+[
+  {
+    "id": "msg-1776947043586-41xdy6",
+    "from": "todo-manager",
+    "to": "team-lead",
+    "type": "message",
+    "content": "收到任务分配。我是待办事项管理Agent，已了解我的职责：\n\n1. **核心职责**：管理用户的待办事项（添加、查看、完成、删除）\n2. **数据文件**：`C:\\Users\\user\\.workbuddy\\skills\\todo-remind\\data\\todos.json`\n3. **桌面导出**：`C:\\Users\\user\\Desktop\\待办事项.txt`\n4. **管理脚本**：`C:\\Users\\user\\.workbuddy\\skills\\todo-remind\\scripts\\todo.py`\n\n我已准备好接收用户的待办事项管理指令。当用户需要添加、查看、完成或删除待办事项时，我会立即执行相应操作并反馈结果。",
+    "timestamp": "2026-04-23T12:24:03.586Z",
+    "read": true
+  }
+]
