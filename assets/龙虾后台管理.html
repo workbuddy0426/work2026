@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦞 龙虾后台管理</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d28;
+    --surface2: #232738;
+    --border: #2d3248;
+    --text: #e8eaed;
+    --text2: #9aa0b0;
+    --accent: #e85d3a;
+    --accent2: #3a86ff;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --sidebar: 240px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: var(--sidebar);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px 20px;
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .sidebar-brand .logo { font-size: 24px; }
+  .sidebar-brand .badge {
+    font-size: 10px;
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    font-size: 14px;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(232,93,58,0.08); }
+  .nav-item .icon { font-size: 16px; width: 22px; text-align: center; }
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .sidebar-footer .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 6px;
+  }
+
+  .main {
+    margin-left: var(--sidebar);
+    flex: 1;
+    padding: 24px 32px;
+    max-width: calc(100vw - var(--sidebar));
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .header h1 { font-size: 22px; font-weight: 600; }
+  .header .time { color: var(--text2); font-size: 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent2); }
+  .stat-card .label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; }
+  .stat-card .change { font-size: 12px; margin-top: 4px; color: var(--text2); }
+  .stat-card .icon-bg { float: right; font-size: 28px; opacity: 0.2; }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title .action {
+    font-size: 12px;
+    color: var(--accent2);
+    cursor: pointer;
+  }
+  .section-title .action:hover { text-decoration: underline; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    color: var(--text2);
+    font-weight: 500;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .tag-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .tag-green { background: rgba(52,211,153,0.15); color: var(--green); }
+  .tag-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .tag-gray { background: rgba(154,160,176,0.15); color: var(--text2); }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .todo-item:last-child { border-bottom: none; }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text2);
+    font-size: 14px;
+  }
+  .loading .spinner {
+    display: inline-block;
+    width: 24px; height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; color: var(--text2); padding: 32px; font-size: 13px; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; }
+    .sidebar .nav-text, .sidebar-brand span, .badge, .sidebar-footer { display: none; }
+    .main { margin-left: 60px; padding: 16px; }
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <span class="logo">🦞</span>
+    <span>龙虾后台</span>
+    <span class="badge">v1.0</span>
+  </div>
+  <div class="nav-item active" data-page="dashboard">
+    <span class="icon">📊</span><span class="nav-text">仪表盘</span>
+  </div>
+  <div class="nav-item" data-page="todos">
+    <span class="icon">✅</span><span class="nav-text">待办看板</span>
+  </div>
+  <div class="nav-item" data-page="trading">
+    <span class="icon">📈</span><span class="nav-text">交易监控</span>
+  </div>
+  <div class="nav-item" data-page="content">
+    <span class="icon">📝</span><span class="nav-text">内容管理</span>
+  </div>
+  <div class="nav-item" data-page="learning">
+    <span class="icon">📚</span><span class="nav-text">学习进度</span>
+  </div>
+  <div class="nav-item" data-page="memory">
+    <span class="icon">🧠</span><span class="nav-text">记忆管理</span>
+  </div>
+  <div class="nav-item" data-page="settings">
+    <span class="icon">⚙️</span><span class="nav-text">系统设置</span>
+  </div>
+  <div class="sidebar-footer">
+    <span class="status-dot"></span> 系统运行中
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="header">
+    <h1 id="pageTitle">📊 仪表盘</h1>
+    <div class="time" id="clock"></div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="grid">
+      <div class="stat-card">
+        <div class="icon-bg">✅</div>
+        <div class="label">今日待办</div>
+        <div class="value" id="dash-todo-total">-</div>
+        <div class="change">完成率 <span id="dash-todo-rate">-</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-bg">🧠</div>
+        <div class="label">记忆文件</div>
+        <div class="value" id="dash-memory-files">-</div>
+        <div class="change" id="dash-memory-size">加载中...</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-bg">📚</div>
+        <div class="label">学习进度</div>
+        <div class="value" id="dash-learning">-/8</div>
+        <div class="change" id="dash-learning-detail">加载中...</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-bg">📝</div>
+        <div class="label">内容待发布</div>
+        <div class="value">2</div>
+        <div class="change">小红书 3日更 · 公众号 周更</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚠️ 需关注事项</div>
+      <table>
+        <thead><tr><th>事项</th><th>状态</th></tr></thead>
+        <tbody id="dash-alerts">
+          <tr><td colspan="2" class="empty-state">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">今日快速操作</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px" onclick="switchPage('todos')">📋 查看待办</button>
+        <button style="background:var(--accent2);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px" onclick="switchPage('learning')">📚 学习进度</button>
+        <button style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px" onclick="switchPage('memory')">🧠 记忆管理</button>
+        <button style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px" onclick="switchPage('settings')">⚙️ 设置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TODOS ===== -->
+  <div class="page" id="page-todos">
+    <div class="section">
+      <div class="section-title">📋 今日待办 <span class="action" onclick="loadTodos()">🔄 刷新</span></div>
+      <div id="todo-list" class="loading"><div class="spinner"></div>加载待办数据...</div>
+    </div>
+    <div class="grid">
+      <div class="stat-card"><div class="label">已完成</div><div class="value" style="color:var(--green)" id="todo-done">-</div></div>
+      <div class="stat-card"><div class="label">待办</div><div class="value" style="color:var(--yellow)" id="todo-pending">-</div></div>
+      <div class="stat-card"><div class="label">逾期</div><div class="value" style="color:var(--red)" id="todo-overdue">-</div></div>
+      <div class="stat-card"><div class="label">完成率</div><div class="value" id="todo-rate">-</div></div>
+    </div>
+  </div>
+
+  <!-- ===== TRADING ===== -->
+  <div class="page" id="page-trading">
+    <div class="section">
+      <div class="section-title">📊 交易风控状态</div>
+      <table>
+        <thead><tr><th>规则</th><th>阈值</th><th>当前值</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>单笔止损</td><td>≤ 3%</td><td>-</td><td><span class="tag tag-gray">待数据</span></td></tr>
+          <tr><td>单标仓位</td><td>≤ 20%</td><td>-</td><td><span class="tag tag-gray">待数据</span></td></tr>
+          <tr><td>月度回撤</td><td>≤ 8%</td><td>-</td><td><span class="tag tag-gray">待数据</span></td></tr>
+          <tr><td>回撤 4%+</td><td>止损缩至 1.5%</td><td>-</td><td><span class="tag tag-gray">未触发</span></td></tr>
+          <tr><td>回撤 6%+</td><td>禁止开新仓</td><td>-</td><td><span class="tag tag-gray">未触发</span></td></tr>
+          <tr><td>回撤 8%+</td><td>强制停交易</td><td>-</td><td><span class="tag tag-gray">未触发</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">持仓概览</div>
+      <table><thead><tr><th>代码</th><th>名称</th><th>仓位</th><th>盈亏</th></tr></thead>
+        <tbody><tr><td colspan="4" class="empty-state">暂无持仓数据（需接入券商数据源）</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== CONTENT ===== -->
+  <div class="page" id="page-content">
+    <div class="section">
+      <div class="section-title">📝 内容发布日历</div>
+      <table>
+        <thead><tr><th>平台</th><th>频次</th><th>上次发布</th><th>下一篇</th><th>主题</th></tr></thead>
+        <tbody>
+          <tr><td>小红书</td><td>3日更</td><td>待更新</td><td>今日</td><td><span class="tag tag-blue">AI工具踩坑实录</span></td></tr>
+          <tr><td>公众号</td><td>周更</td><td>待更新</td><td>本周</td><td><span class="tag tag-blue">深度干货</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">内容数据 <span style="font-size:12px;font-weight:400;color:var(--text2)">(待接入小红书 API)</span></div>
+      <table><thead><tr><th>指标</th><th>数值</th></tr></thead>
+        <tbody>
+          <tr><td>粉丝数</td><td>-</td></tr>
+          <tr><td>笔记总数</td><td>-</td></tr>
+          <tr><td>平均点赞</td><td>-</td></tr>
+          <tr><td>平均收藏</td><td>-</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== LEARNING ===== -->
+  <div class="page" id="page-learning">
+    <div class="section">
+      <div class="section-title">📚《量化交易》学习进度 <span class="action" onclick="loadLearning()">🔄 刷新</span></div>
+      <div id="learning-body"><div class="loading"><div class="spinner"></div>加载学习进度...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== MEMORY ===== -->
+  <div class="page" id="page-memory">
+    <div class="section">
+      <div class="section-title">🧠 记忆文件总览 <span class="action" onclick="loadMemory()">🔄 刷新</span></div>
+      <div id="memory-body"><div class="loading"><div class="spinner"></div>加载记忆数据...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS ===== -->
+  <div class="page" id="page-settings">
+    <div class="section">
+      <div class="section-title">⚙️ 系统配置</div>
+      <table>
+        <tbody>
+          <tr><td>WorkBuddy 版本</td><td>v4.0 (DeepSeek-V4-Flash)</td></tr>
+          <tr><td>记忆管理 Skill</td><td>Memory Manager (已安装)</td></tr>
+          <tr><td>量化数据源</td><td>baostock</td></tr>
+          <tr><td>小红书助手</td><td>已配置</td></tr>
+          <tr><td>每日推送</td><td>早 8:00 / 晚 20:00</td></tr>
+          <tr><td>服务器端口</td><td>3000</td></tr>
+          <tr><td>服务器运行时间</td><td id="server-uptime">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">自动化任务状态</div>
+      <table>
+        <thead><tr><th>任务</th><th>调度</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>早安待办推送</td><td>每日 8:00</td><td><span class="tag tag-green">运行中</span></td></tr>
+          <tr><td>晚间完成总结</td><td>每日 20:00</td><td><span class="tag tag-green">运行中</span></td></tr>
+          <tr><td>使用指南提醒</td><td>每周一 9:00</td><td><span class="tag tag-green">运行中</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== Navigation =====
+const pageNames = {
+  dashboard: '📊 仪表盘', todos: '✅ 待办看板', trading: '📈 交易监控',
+  content: '📝 内容管理', learning: '📚 学习进度', memory: '🧠 记忆管理', settings: '⚙️ 系统设置'
+};
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  document.getElementById('pageTitle').textContent = pageNames[page];
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchPage(item.dataset.page));
+});
+
+// ===== Clock =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleDateString('zh-CN', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== API Helper =====
+async function api(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+function fmtSize(bytes) {
+  if (!bytes) return '0B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + sizes[i];
+}
+
+// ===== Load Todos =====
+async function loadTodos() {
+  const container = document.getElementById('todo-list');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>加载待办数据...</div>';
+  try {
+    const data = await api('/api/todos');
+    const todos = data.todos || [];
+    const total = data.total || todos.length;
+    const done = data.done || 0;
+    const pending = data.pending || (total - done);
+
+    document.getElementById('dash-todo-total').textContent = total;
+    document.getElementById('dash-todo-rate').textContent = total ? Math.round(done / total * 100) + '%' : '0%';
+    document.getElementById('todo-done').textContent = done;
+    document.getElementById('todo-pending').textContent = pending;
+    document.getElementById('todo-overdue').textContent = '0';
+    document.getElementById('todo-rate').textContent = total ? Math.round(done / total * 100) + '%' : '0%';
+
+    if (todos.length === 0) {
+      container.innerHTML = '<div class="empty-state">✅ 暂无待办事项</div>';
+      return;
+    }
+
+    container.innerHTML = todos.map((t, i) => {
+      const isDone = t.done || t.status === 'completed';
+      const text = t.text || t.title || t.name || JSON.stringify(t);
+      const pri = t.priority || t.pri || '中';
+      const priClass = pri === '高' || pri === 'high' ? 'pri-high' :
+                       pri === '低' || pri === 'low' ? 'pri-low' : 'pri-mid';
+      return `<div class="todo-item">
+        <div class="todo-check ${isDone ? 'done' : ''}"></div>
+        <span class="todo-text ${isDone ? 'done' : ''}">${text}</span>
+        <span class="todo-priority ${priClass}">${pri}</span>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state">❌ 加载失败: ${e.message}</div>`;
+  }
+}
+
+// ===== Load Learning =====
+async function loadLearning() {
+  const container = document.getElementById('learning-body');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>加载学习进度...</div>';
+  try {
+    const data = await api('/api/learning');
+    const chapters = data.chapters || [];
+
+    document.getElementById('dash-learning').textContent = '?/8';
+    document.getElementById('dash-learning-detail').textContent = '加载完成';
+
+    if (chapters.length === 0) {
+      container.innerHTML = '<div class="empty-state">暂无学习数据</div>';
+      return;
+    }
+
+    let completed = 0;
+    const rows = chapters.map((ch, i) => {
+      const isLast = i === chapters.length - 1;
+      const status = isLast ? '进行中' : '完成';
+      const pct = isLast ? '30%' : '100%';
+      const color = isLast ? 'var(--yellow)' : 'var(--green)';
+      const tagClass = isLast ? 'tag-yellow' : 'tag-green';
+      if (!isLast) completed++;
+      return `<tr>
+        <td>第${i+1}章</td>
+        <td>${ch}</td>
+        <td><span class="tag ${tagClass}">${status}</span></td>
+        <td>
+          <div>${pct}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct};background:${color}"></div></div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('dash-learning').textContent = `${completed}/8`;
+    document.getElementById('dash-learning-detail').textContent =
+      `第${completed+1}章进行中 (${completed}/8 完成)`;
+
+    container.innerHTML = `<table>
+      <thead><tr><th>章节</th><th>标题</th><th>状态</th><th>进度</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state">❌ 加载失败: ${e.message}</div>`;
+  }
+}
+
+// ===== Load Memory =====
+async function loadMemory() {
+  const container = document.getElementById('memory-body');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>加载记忆数据...</div>';
+  try {
+    const data = await api('/api/memory');
+    const files = data.files || [];
+
+    let totalSize = 0;
+    let fileCount = 0;
+    document.getElementById('dash-memory-files').textContent = files.length;
+
+    if (files.length === 0) {
+      container.innerHTML = '<div class="empty-state">暂无记忆文件</div>';
+      document.getElementById('dash-memory-size').textContent = '0 文件';
+      return;
+    }
+
+    const rows = files.map(f => {
+      if (f.isDir) {
+        return `<tr><td>📁 ${f.name}</td><td>-</td><td><span class="tag tag-blue">目录</span></td></tr>`;
+      }
+      totalSize += f.size;
+      fileCount++;
+      const date = f.mtime ? new Date(f.mtime).toLocaleDateString('zh-CN') : '-';
+      const sz = f.size === 0 ? '<span class="tag tag-gray">空</span>' : fmtSize(f.size);
+      return `<tr><td>${f.name}</td><td>${sz}</td><td>${date}</td></tr>`;
+    }).join('');
+
+    document.getElementById('dash-memory-files').textContent = fileCount;
+    document.getElementById('dash-memory-size').textContent = fmtSize(totalSize);
+
+    container.innerHTML = `<table>
+      <thead><tr><th>文件</th><th>大小</th><th>更新日期</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:12px;color:var(--text2);font-size:12px">
+      总计: ${fileCount} 个文件 · ${fmtSize(totalSize)}
+    </div>`;
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state">❌ 加载失败: ${e.message}</div>`;
+  }
+}
+
+// ===== Load Server Status =====
+async function loadStatus() {
+  try {
+    const data = await api('/api/status');
+    const up = data.uptime || 0;
+    const h = Math.floor(up / 3600);
+    const m = Math.floor((up % 3600) / 60);
+    const s = up % 60;
+    document.getElementById('server-uptime').textContent = `${h}时 ${m}分 ${s}秒`;
+    document.querySelector('.sidebar-footer .status-dot').style.background = 'var(--green)';
+  } catch (e) {
+    document.getElementById('server-uptime').textContent = '连接失败';
+    document.querySelector('.sidebar-footer .status-dot').style.background = 'var(--red)';
+  }
+}
+
+// ===== Dashboard alerts =====
+async function loadAlerts() {
+  const container = document.getElementById('dash-alerts');
+  try {
+    const todo = await api('/api/todos');
+    const pending = todo.pending || 0;
+    if (pending > 0) {
+      container.innerHTML = `<tr><td>有 ${pending} 项待办未完成</td><td><span class="tag tag-yellow">待处理</span></td></tr>`;
+    } else {
+      container.innerHTML = '<tr><td>暂无未完成待办</td><td><span class="tag tag-green">正常</span></td></tr>';
+    }
+  } catch (e) {
+    container.innerHTML = `<tr><td colspan="2">无法连接服务器</td></tr>`;
+  }
+}
+
+// ===== Init =====
+loadTodos();
+loadLearning();
+loadMemory();
+loadStatus();
+loadAlerts();
+</script>
+
+</body>
+</html>

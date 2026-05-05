@@ -1,0 +1,50 @@
+{
+  "results": [
+    {
+      "name": "110085_通22转债",
+      "total_rows": 2400,
+      "real_fatfingers": 2,
+      "signals": 4,
+      "hits": 2,
+      "false_alarms": 2,
+      "missed": 0,
+      "precision": 50.0,
+      "recall": 100.0,
+      "pnl": 332.18
+    },
+    {
+      "name": "127045_牧原转债",
+      "total_rows": 2400,
+      "real_fatfingers": 2,
+      "signals": 4,
+      "hits": 2,
+      "false_alarms": 2,
+      "missed": 0,
+      "precision": 50.0,
+      "recall": 100.0,
+      "pnl": 332.18
+    },
+    {
+      "name": "128136_立讯转债",
+      "total_rows": 2400,
+      "real_fatfingers": 2,
+      "signals": 4,
+      "hits": 2,
+      "false_alarms": 2,
+      "missed": 0,
+      "precision": 50.0,
+      "recall": 100.0,
+      "pnl": 332.18
+    }
+  ],
+  "total": {
+    "signals": 12,
+    "hits": 6,
+    "false": 6,
+    "real": 6,
+    "pnl": 996.54,
+    "precision": 50.0,
+    "recall": 100.0,
+    "name": "合计"
+  }
+}

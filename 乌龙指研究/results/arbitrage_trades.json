@@ -1,0 +1,13 @@
+[
+  {
+    "side": "\u591a\u5e01\u5b89 \u7a7aOKX",
+    "entry_time": "2026-04-29T22:21:39.992694",
+    "exit_time": "2026-04-29T22:21:54.238582",
+    "entry_spread": -3.0,
+    "exit_spread": -0.3,
+    "hold_seconds": 14,
+    "pnl": -9.33,
+    "pnl_pct": -0.19,
+    "reason": "CONVERGE"
+  }
+]
